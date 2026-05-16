@@ -1,0 +1,8 @@
+python-jobspy
+psycopg2-binary
+sqlalchemy
+pandas
+openpyxl
+requests
+beautifulsoup4
+lxml

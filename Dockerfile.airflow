@@ -1,0 +1,5 @@
+ARG AIRFLOW_BASE_IMAGE_NAME=apache/airflow:3.1.7
+FROM ${AIRFLOW_BASE_IMAGE_NAME}
+
+COPY requirements-airflow.txt /requirements-airflow.txt
+RUN pip install --no-cache-dir -r /requirements-airflow.txt

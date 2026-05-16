@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.csv
+*.tsv
+*.xls
+*.xlsx
+ex1_Pip.py
+ex2_pip.py
+ex3_pip.py
+e3_Sensor.py
+branche_et_exemple.py
+tp_postgres_etl_pipeline.py
+Xcom_et.py
+pipeline.py

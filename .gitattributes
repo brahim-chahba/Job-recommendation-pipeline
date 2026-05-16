@@ -1,0 +1,26 @@
+# Keep source/config files with LF line endings in the repository.
+* text=auto
+
+*.py text eol=lf
+*.sql text eol=lf
+*.sh text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+Dockerfile* text eol=lf
+*.Dockerfile text eol=lf
+
+# Treat local/BI/binary artifacts as binary.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.pbix binary
+*.pbit binary
+*.xlsx binary
+*.xls binary
+*.parquet binary

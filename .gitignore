@@ -1,0 +1,95 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+ENV/
+
+# Airflow runtime state
+logs/
+plugins/__pycache__/
+dags/__pycache__/
+dags/tps/
+scraper/__pycache__/
+api/__pycache__/
+airflow.cfg
+airflow.db
+webserver_config.py
+
+# Database/container runtime volumes
+mysql-data/
+postgres-data/
+postgres-db-volume/
+redis-data/
+
+# Pipeline runtime data and exports
+data/*
+!data/.gitkeep
+*.csv
+*.xlsx
+*.xls
+*.parquet
+*.jsonl
+*.ndjson
+t.py
+load_existing_data.py
+# Keep intentional project docs/source files even if exports are ignored
+!README*.md
+PROJECT_STATUS.md
+PERSON_A_DATA_ENGINEERING_PLAN.md
+!sql/**/*.sql
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+secrets/
+
+
+# Docker and local compose overrides
+docker-compose.override.yaml
+docker-compose.override.yml
+*.log
+
+# Power BI / BI local artifacts
+*.pbix
+*.pbit
+*.pbip/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Node/frontend artifacts if Person B adds a React app here later
+node_modules/
+dist/
+build/
+.next/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+~$*
