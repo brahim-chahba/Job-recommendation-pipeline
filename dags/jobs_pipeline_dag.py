@@ -251,13 +251,27 @@ def log_run_task(**context):
     scraped  = context["ti"].xcom_pull(key="scraped_count", task_ids="scrape_jobs")  or 0
     inserted = context["ti"].xcom_pull(key="dim_inserted",  task_ids="upsert_dim_jobs") or 0
     updated  = context["ti"].xcom_pull(key="dim_updated",   task_ids="upsert_dim_jobs") or 0
-    dag_run = context["dag_run"]
     upstream_tasks = {"scrape_jobs", "load_raw", "upsert_dim_jobs"}
-    task_states = {
-        ti.task_id: ti.state
-        for ti in dag_run.get_task_instances()
-        if ti.task_id in upstream_tasks
-    }
+    dag_id = context["dag"].dag_id
+
+    engine = _get_engine()
+    with engine.begin() as conn:
+        rows = conn.execute(text("""
+            SELECT task_id, state
+            FROM task_instance
+            WHERE dag_id = :dag_id
+              AND run_id = :run_id
+              AND task_id = ANY(:task_ids)
+        """), {
+            "dag_id": dag_id,
+            "run_id": run_id,
+            "task_ids": list(upstream_tasks),
+        }).mappings().all()
+
+    task_states = {row["task_id"]: row["state"] for row in rows}
+    for task_id in upstream_tasks:
+        task_states.setdefault(task_id, "missing")
+
     failed_states = {
         task_id: state
         for task_id, state in task_states.items()
@@ -270,7 +284,6 @@ def log_run_task(**context):
             f"{task_id}={state}" for task_id, state in sorted(failed_states.items())
         )
 
-    engine = _get_engine()
     with engine.begin() as conn:
         conn.execute(text("""
             UPDATE jobs_dw.pipeline_runs
