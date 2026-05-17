@@ -45,6 +45,7 @@ load_existing_data.py
 PROJECT_STATUS.md
 PERSON_A_DATA_ENGINEERING_PLAN.md
 !sql/**/*.sql
+job_matcher_v2.pkl
 
 # Local environment and secrets
 .env

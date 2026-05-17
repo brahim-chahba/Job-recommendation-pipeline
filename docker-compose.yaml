@@ -417,6 +417,21 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  matcher-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.matcher
+    container_name: job-intelligence-matcher-api
+    environment:
+      JOB_MATCHER_DATA_FILE: ${JOB_MATCHER_DATA_FILE:-data/jobs_manual__split_sources_2026_05_16.json}
+      JOB_MATCHER_MODEL_FILE: ${JOB_MATCHER_MODEL_FILE:-job_matcher_v2.pkl}
+      JOB_MATCHER_API_HOST: 0.0.0.0
+      JOB_MATCHER_API_PORT: ${JOB_MATCHER_API_PORT:-5001}
+      JOB_MATCHER_API_DEBUG: ${JOB_MATCHER_API_DEBUG:-0}
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+
 volumes:
   postgres-db-volume:
   minio-data:

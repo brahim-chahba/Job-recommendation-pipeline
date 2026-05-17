@@ -1,7 +1,8 @@
 import json
+import os
 import urllib.request
 
-url = "http://localhost:5000/api/match"
+url = os.getenv("MATCHER_API_URL", "http://localhost:5001/api/match")
 payload = json.dumps({
     "title": "Data Analyst",
     "city": "Casablanca",

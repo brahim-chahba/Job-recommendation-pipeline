@@ -6,10 +6,12 @@ with proper feature engineering for better matching.
 """
 
 import json
-import re
+import os
 import pickle
-import numpy as np
+import re
 from pathlib import Path
+
+import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.ensemble import GradientBoostingClassifier
@@ -18,8 +20,10 @@ from sklearn.metrics import classification_report, accuracy_score
 from sklearn.preprocessing import LabelEncoder
 from collections import Counter
 
-DATA_FILE = "jobs_manual__split_sources_2026_05_16.json"
-MODEL_FILE = "job_matcher_v2.pkl"
+DATA_FILE = os.getenv(
+    "JOB_MATCHER_DATA_FILE", "data/jobs_manual__split_sources_2026_05_16.json"
+)
+MODEL_FILE = os.getenv("JOB_MATCHER_MODEL_FILE", "job_matcher_v2.pkl")
 
 SKILLS_DB = [
     "python","java","javascript","typescript","c++","c#","scala","go","php","ruby",
@@ -38,7 +42,20 @@ SKILLS_DB = [
 
 
 def load_data(filepath=DATA_FILE):
-    with open(filepath, "r", encoding="utf-8") as f:
+    candidate_paths = [
+        Path(filepath),
+        Path("data/jobs_manual__split_sources_2026_05_16.json"),
+        Path("/app/data/jobs_manual__split_sources_2026_05_16.json"),
+    ]
+    data_path = next((path for path in candidate_paths if path.exists()), None)
+    if data_path is None:
+        searched = ", ".join(str(path) for path in candidate_paths)
+        raise FileNotFoundError(
+            f"Dataset file not found. Looked in: {searched}. "
+            "Set JOB_MATCHER_DATA_FILE to the right path."
+        )
+
+    with data_path.open("r", encoding="utf-8") as f:
         data = json.load(f)
     print(f"[INFO] Loaded {len(data)} records.")
     return data
