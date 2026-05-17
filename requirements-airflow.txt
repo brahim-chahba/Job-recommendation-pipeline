@@ -2,6 +2,8 @@ python-jobspy
 psycopg2-binary
 sqlalchemy
 pandas
+boto3
+pyarrow
 openpyxl
 requests
 beautifulsoup4
