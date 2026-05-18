@@ -386,6 +386,28 @@ def export_lake_curated_task(**context):
     logger.info("[%s] Exported %s curated datasets to the lake.", run_id, len(uris))
 
 
+def retrain_model_task(**context):
+    import requests
+    run_id = context["run_id"]
+    urls = [
+        "http://matcher-api:5001/api/retrain",
+        "http://localhost:5001/api/retrain",
+    ]
+    for url in urls:
+        try:
+            logger.info("[%s] Tentative de declenchement du re-entrainement via: %s", run_id, url)
+            response = requests.post(url, timeout=300)
+            if response.status_code == 200:
+                logger.info("[%s] Modele ML re-entraine avec succes ! Status: %s", run_id, response.json())
+                return
+            else:
+                logger.warning("[%s] Echec du re-entrainement sur %s (code %s)", run_id, url, response.status_code)
+        except Exception as e:
+            logger.warning("[%s] Impossible de joindre l'API %s: %s", run_id, url, e)
+    
+    logger.error("[%s] Le re-entrainement automatique a echoue sur toutes les adresses.", run_id)
+
+
 def log_run_task(**context):
     run_id = context["run_id"]
     scraped = context["ti"].xcom_pull(key="scraped_count", task_ids="scrape_jobs") or 0
@@ -397,6 +419,7 @@ def log_run_task(**context):
         "load_raw",
         "upsert_dim_jobs",
         "export_lake_curated",
+        "retrain_model",
     }
     dag_id = context["dag"].dag_id
 
@@ -486,8 +509,11 @@ with DAG(
     lake_curated = PythonOperator(
         task_id="export_lake_curated", python_callable=export_lake_curated_task
     )
+    retrain = PythonOperator(
+        task_id="retrain_model", python_callable=retrain_model_task
+    )
     log = PythonOperator(
         task_id="log_run", python_callable=log_run_task, trigger_rule="all_done"
     )
 
-    scrape >> lake_bronze >> raw >> upsert >> lake_curated >> log
+    scrape >> lake_bronze >> raw >> upsert >> lake_curated >> retrain >> log
