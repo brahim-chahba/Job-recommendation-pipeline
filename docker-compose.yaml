@@ -426,6 +426,7 @@ services:
       dockerfile: Dockerfile.matcher
     container_name: job-intelligence-matcher-api
     environment:
+      DATABASE_URL: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
       JOB_MATCHER_DATA_FILE: ${JOB_MATCHER_DATA_FILE:-data/jobs_manual__split_sources_2026_05_16.json}
       JOB_MATCHER_MODEL_FILE: ${JOB_MATCHER_MODEL_FILE:-job_matcher_v2.pkl}
       JOB_MATCHER_API_HOST: 0.0.0.0
@@ -433,6 +434,9 @@ services:
       JOB_MATCHER_API_DEBUG: ${JOB_MATCHER_API_DEBUG:-0}
     ports:
       - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

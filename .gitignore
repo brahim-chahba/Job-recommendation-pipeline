@@ -1,4 +1,4 @@
-# Python
+# Python bytecode & cache
 __pycache__/
 *.py[cod]
 *$py.class
@@ -7,10 +7,15 @@ __pycache__/
 .ruff_cache/
 .coverage
 htmlcov/
+
+# Virtual environments
 .venv/
 venv/
-env/
 ENV/
+env/
+
+# Large Model Files
+*.pkl
 
 # Airflow runtime state
 logs/
@@ -40,12 +45,10 @@ data/*
 *.ndjson
 t.py
 load_existing_data.py
-# Keep intentional project docs/source files even if exports are ignored
 !README*.md
 PROJECT_STATUS.md
 PERSON_A_DATA_ENGINEERING_PLAN.md
 !sql/**/*.sql
-job_matcher_v2.pkl
 
 # Local environment and secrets
 .env
@@ -55,7 +58,6 @@ job_matcher_v2.pkl
 *.key
 *.crt
 secrets/
-
 
 # Docker and local compose overrides
 docker-compose.override.yaml
@@ -76,7 +78,7 @@ desktop.ini
 !.vscode/settings.json
 !.vscode/extensions.json
 
-# Node/frontend artifacts if Person B adds a React app here later
+# Frontend artifacts (React)
 node_modules/
 dist/
 build/
@@ -94,4 +96,3 @@ temp/
 *.bak
 *.swp
 ~$*
-PERSON_B_TARIK_REVIEW.md

@@ -6,12 +6,13 @@ with proper feature engineering for better matching.
 """
 
 import json
-import os
-import pickle
 import re
-from pathlib import Path
-
+import pickle
+import os
 import numpy as np
+import pandas as pd
+from sqlalchemy import create_engine
+from pathlib import Path
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.ensemble import GradientBoostingClassifier
@@ -20,10 +21,8 @@ from sklearn.metrics import classification_report, accuracy_score
 from sklearn.preprocessing import LabelEncoder
 from collections import Counter
 
-DATA_FILE = os.getenv(
-    "JOB_MATCHER_DATA_FILE", "data/jobs_manual__split_sources_2026_05_16.json"
-)
-MODEL_FILE = os.getenv("JOB_MATCHER_MODEL_FILE", "job_matcher_v2.pkl")
+DATA_FILE = "jobs_manual__split_sources_2026_05_16.json"
+MODEL_FILE = "job_matcher_v2.pkl"
 
 SKILLS_DB = [
     "python","java","javascript","typescript","c++","c#","scala","go","php","ruby",
@@ -42,22 +41,39 @@ SKILLS_DB = [
 
 
 def load_data(filepath=DATA_FILE):
-    candidate_paths = [
-        Path(filepath),
-        Path("data/jobs_manual__split_sources_2026_05_16.json"),
-        Path("/app/data/jobs_manual__split_sources_2026_05_16.json"),
-    ]
-    data_path = next((path for path in candidate_paths if path.exists()), None)
-    if data_path is None:
-        searched = ", ".join(str(path) for path in candidate_paths)
-        raise FileNotFoundError(
-            f"Dataset file not found. Looked in: {searched}. "
-            "Set JOB_MATCHER_DATA_FILE to the right path."
-        )
+    # Essayez de charger depuis PostgreSQL (Couche Gold)
+    try:
+        db_url = os.getenv("DATABASE_URL", "postgresql+psycopg2://airflow:airflow@localhost:5432/airflow")
+        print(f"[INFO] Tentative de connexion a PostgreSQL Gold Layer...")
+        engine = create_engine(db_url)
+        query = "SELECT * FROM jobs_dw.vw_latest_jobs"
+        df = pd.read_sql(query, engine)
+        
+        if not df.empty:
+            print(f"[INFO] {len(df)} offres chargees depuis la couche Gold de PostgreSQL (vw_latest_jobs).")
+            records = []
+            for _, row in df.iterrows():
+                records.append({
+                    "title": row.get("title", ""),
+                    "company": row.get("company", ""),
+                    "city": row.get("city", ""),
+                    "country": row.get("country", "Morocco"),
+                    "is_remote": bool(row.get("is_remote", False)),
+                    "job_type": row.get("job_type", "fulltime"),
+                    "job_category": row.get("job_category", "Other"),
+                    "job_url": row.get("job_url", ""),
+                    "site": row.get("site", ""),
+                    "date_posted": str(row.get("date_posted", "")) if row.get("date_posted") else "",
+                    "description": row.get("description", ""),
+                })
+            return records
+    except Exception as e:
+        print(f"[WARNING] Impossible de charger les donnees depuis PostgreSQL: {e}. Utilisation du fichier JSON statique comme fallback.")
 
-    with data_path.open("r", encoding="utf-8") as f:
+    # Fallback sur le fichier JSON statique
+    with open(filepath, "r", encoding="utf-8") as f:
         data = json.load(f)
-    print(f"[INFO] Loaded {len(data)} records.")
+    print(f"[INFO] Loaded {len(data)} records from static JSON fallback.")
     return data
 
 
@@ -494,7 +510,7 @@ class JobMatcherModelV2:
             job = self.jobs[idx]
             orig = job["original"]
             score = round(float(final_scores[idx]), 1)
-            if score <= 0:
+            if score < 60.0:
                 continue
             results.append({
                 "match_score": score,
